@@ -212,7 +212,7 @@ def build_game_graph(df_user_items: pd.DataFrame) -> nx.Graph:
 
     print("Building the game graph...")
 
-    for user_id, item_list in grouped.items():
+    for _, item_list in grouped.items():
         user_count += 1
         # Show progress for building the graph every ~5%
         if total_users > 0 and user_count % max(1, math.floor(total_users / 20)) == 0:
@@ -262,7 +262,7 @@ def build_genre_tree(df_games: pd.DataFrame) -> Node:
 
     print("Building the genre tree...")
 
-    for idx, row in df_games.iterrows():
+    for _, row in df_games.iterrows():
         processed_games += 1
         if total_games > 0 and processed_games % max(1, math.floor(total_games / 20)) == 0:
             percentage = int((processed_games / total_games) * 100)
@@ -289,11 +289,10 @@ def build_genre_tree(df_games: pd.DataFrame) -> Node:
 
 
 def recommend_by_graph(
-    game_graph: nx.Graph,
-    target_game_id: str,
-    top_n: int = 5,
-    id_to_name: dict = None,
-    id_to_genres: dict = None
+        game_graph: nx.Graph,
+        target_game_id: str,
+        top_n: int = 5,
+        id_to_name: dict = None
 ) -> list:
     """
     Using graph-based search or neighbor analysis, find games most similar to the target (sorted by edge weight).
@@ -325,16 +324,15 @@ def recommend_by_graph(
 
 
 def hybrid_recommendation(
-    game_graph: nx.Graph,
-    genre_tree_root: Node,
-    target_game_id: str,
-    target_genre: str,
-    id_to_name: dict = None,
-    id_to_genres: dict = None,
-    name_to_id: dict = None,
-    id_to_rating: dict = None,
-    num_random_picks: int = 5,
-    top_cutoff: int = 20
+        game_graph: nx.Graph,
+        genre_tree_root: Node,
+        target_game_id: str,
+        target_genre: str,
+        id_to_name: dict = None,
+        name_to_id: dict = None,
+        id_to_rating: dict = None,
+        num_random_picks: int = 5,
+        top_cutoff: int = 20
 ) -> list:
     """
     1) Find the top N graph-based games similar to target_game_id
@@ -345,8 +343,7 @@ def hybrid_recommendation(
     # Step A: graph-based top 20 IDs -> convert to names (and skip unknown)
     rec_graph_names = recommend_by_graph(
         game_graph, target_game_id, top_n=20,
-        id_to_name=id_to_name,
-        id_to_genres=id_to_genres
+        id_to_name=id_to_name
     )
     rec_graph_set = set(rec_graph_names)
 

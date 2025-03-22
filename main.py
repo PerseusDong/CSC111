@@ -7,6 +7,8 @@ Entry point file:
 3. Show popularity rankings and let the user interactively input a game for recommendations.
 """
 
+from visualizations import visualize_local_game_graph
+
 from function import (
     load_steam_games,
     load_user_items,
@@ -39,7 +41,7 @@ def main():
     id_to_name = df_games.set_index('id')['app_name'].to_dict()
     # For genres:
     temp = df_games.set_index('id')['genres'].apply(lambda x: x if isinstance(x, list) else [])
-    id_to_genres = temp.to_dict()
+    temp.to_dict()
     rating_series = df_user_reviews.groupby('item_id')['recommend'].mean()
     id_to_rating = rating_series.to_dict()
     print("Data loading completed. Now building the graph and tree...")
@@ -60,7 +62,7 @@ def main():
 
     # Create a dictionary: app_name -> id (for user input lookup)
     name_to_id = {}
-    for idx, row in df_games.iterrows():
+    for _, row in df_games.iterrows():
         game_id = row['id']
         app_name = str(row.get('app_name', f"Game_{game_id}"))
         name_to_id[app_name.lower()] = game_id
@@ -78,7 +80,10 @@ def main():
             continue
 
         # Optionally ask for a genre
-        genre_input = input("Enter a genre you're interested in (e.g. 'Action'), or press Enter to skip: ").strip()
+        genre_input = input("Enter a genre you're interested in (choose from: Action, Adventure, Animation & Modeling, \
+        Audio Production, Casual, Design & Illustration, Early Access, Education, Free to Play, Indie, \
+        Massively Multiplayer, Photo Editing, RPG, Racing, Simulation, Software Training, Sports, Strategy, Utilities,\
+         Video Production, Web Publishing), or press Enter to skip: ").strip()
         if not genre_input:
             genre_input = "Action"  # default fallback
 
@@ -109,14 +114,13 @@ def main():
         # We have game_id from the dictionary
         game_id = name_to_id[lower_name]
 
-        rec_graph = recommend_by_graph(game_graph, game_id, top_n=5, id_to_name=id_to_name, id_to_genres=id_to_genres)
+        rec_graph = recommend_by_graph(game_graph, game_id, top_n=5, id_to_name=id_to_name)
         rec_hybrid = hybrid_recommendation(
             game_graph,
             genre_tree_root,
             game_id,  # the ID
             genre_input,  # the genre
             id_to_name=id_to_name,
-            id_to_genres=id_to_genres,
             name_to_id=name_to_id,
             id_to_rating=id_to_rating,
             num_random_picks=5,
@@ -129,6 +133,19 @@ def main():
             id_to_rating=id_to_rating,
             num_random_picks=5,
             top_cutoff=20
+        )
+
+        visualize_local_game_graph(
+            game_graph,
+            chosen_id=game_id,
+            id_to_name=id_to_name,
+            max_depth=2,
+            max_nodes=30,  # maybe fewer nodes
+            figure_size=(12, 9),
+            node_size=800,
+            node_font_size=10,
+            edge_alpha=0.2,
+            layout="kamada_kawai"
         )
 
         print(f"\n[Graph Similarity Recommendation] Games most similar to '{user_input}' (ID: {game_id}): {rec_graph}")
